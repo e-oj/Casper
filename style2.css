@@ -18,7 +18,7 @@
     I be a comment
 */
 
-.name-input{
+.name-input {
     position: relative;
     display: block;
     color: cornflowerblue;
@@ -28,6 +28,9 @@
     margin-top: 20px;
     font-size: 12pt;
 }
+/* Hey,
+    I also be comment
+*/
 
 .name-submit{
     display: block;
@@ -65,9 +68,10 @@
     width: 200px;
 }
 
-.quest-prompt .question{
+.quest-prompt .question {
     margin: 15px;
 }
+
 
 .quest-prompt label{
     display: block;

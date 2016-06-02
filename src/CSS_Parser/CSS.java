@@ -10,11 +10,21 @@ import java.util.Map;
 public class CSS {
     Map<String, String> cssData = new HashMap<>();
     private String fileName;
-    private String identifier;
+    private String identifier = "";
 
     public CSS(String fileName, String identifier){
         this.fileName = fileName;
         this.identifier = identifier;
+    }
+
+    public CSS(String fileName){
+        this.fileName = fileName;
+    }
+
+    public CSS(CSS css, String identifier){
+        this.fileName = css.fileName;
+        this.identifier = identifier;
+        this.cssData = new HashMap<>(css.cssData);
     }
 
     public void addField(String prop, String val){
@@ -43,7 +53,7 @@ public class CSS {
     }
 
     public static void main(String[] args) {
-        CSS style = new CSS("style.css", ".test");
+        CSS style = new CSS("style2.css", ".test");
 
         style.addField("position", "relative");
         style.addField("height", "20px");

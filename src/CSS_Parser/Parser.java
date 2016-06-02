@@ -1,15 +1,13 @@
 package CSS_Parser;
 
 import Exceptions.InvalidExtensionException;
-import Exceptions.InvalidFormatException;
+import Exceptions.InvalidSyntaxException;
 
-import javax.print.DocFlavor;
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.FileReader;
-import java.util.HashMap;
-import java.util.Map;
+import java.util.*;
 
 /**
  * @author Emmanuel Olaojo
@@ -19,11 +17,11 @@ public class Parser {
     private static final String OPEN_COMMENT = "/*";
     private static final String CLOSE_COMMENT = "*/";
     private String fileName;
-    private Map<String, CSS> globMap;
+    private Map<String, List<CSS>> globMap;
     private BufferedReader br;
     private boolean inComment = false;
 
-    public Parser(String fileName, Map<String, CSS> globMap) throws InvalidExtensionException {
+    public Parser(String fileName, Map<String, List<CSS>> globMap) throws InvalidExtensionException {
         if(!validExt(fileName)) throw new InvalidExtensionException(fileName);
 
         try {
@@ -37,7 +35,7 @@ public class Parser {
         this.globMap = globMap;
     }
 
-    public boolean validExt(String fileName){
+    private boolean validExt(String fileName){
         String[] splitName = fileName.split("\\.");
 
         return splitName[splitName.length-1].toLowerCase().equals("css");
@@ -61,13 +59,13 @@ public class Parser {
 
         try {
             parseCSS(cssString);
-        } catch(InvalidFormatException ife){
-            System.out.println(ife.getMessage());
+        } catch(InvalidSyntaxException ife){
+            ife.printStackTrace();
             System.exit(1);
         }
     }
 
-    public void parseCSS(StringBuilder cssString) throws InvalidFormatException{
+    private void parseCSS(StringBuilder cssString) throws InvalidSyntaxException {
         int openIndex;
         int closeIndex;
 
@@ -76,25 +74,103 @@ public class Parser {
             closeIndex = cssString.indexOf("}");
 
             if(openIndex <= 0 || closeIndex < 0 || openIndex > closeIndex) {
-//                System.out.println(cssString.toString());
-                throw new InvalidFormatException(this.fileName);
+                throw new InvalidSyntaxException(this.fileName);
             }
 
-            System.out.println(getBlock(cssString, closeIndex));
+            parseCssBlock(getBlock(cssString, closeIndex));
         }
     }
 
-    public void parseCssBlock(String cssBlock){
+    private void parseCssBlock(String cssBlock) throws InvalidSyntaxException {
+        String[] styleParts = cssBlock.split("\\{|}");
+        String identifiers = styleParts[0];
+        String style = styleParts[1];
+        CSS css = createCSS(style);
+        String[] iSplit = identifiers.split(",");
+        ArrayList<CSS> styleList;
 
+        for(String s: iSplit){
+            String key = getBaseSelector(s);
+            CSS val = new CSS(css, s);
+
+            if(globMap.containsKey(key)){
+                globMap.get(key).add(val);
+            }
+            else{
+                styleList = new ArrayList<>();
+                styleList.add(val);
+                globMap.put(key, styleList);
+            }
+        }
+
+        System.out.println(identifiers + css);
     }
 
-    public String getBlock(StringBuilder cssString, int end){
+    private String getBaseSelector(String identifier) throws InvalidSyntaxException {
+        identifier = identifier.trim();
+        int start = identifier.length() - 1;
+        int end = identifier.length();
+        final Set<Character> SELECTORS = new HashSet<>();
+        char first = identifier.charAt(0);
+
+        SELECTORS.add('.');
+        SELECTORS.add('#');
+        SELECTORS.add(' ');
+        SELECTORS.add('>');
+        SELECTORS.add('+');
+        SELECTORS.add('~');
+
+        if(first == '>' || first == '+' || first == '~'){
+            System.out.println(identifier);
+            throw new InvalidSyntaxException(this.fileName);
+        }
+        
+        while(!SELECTORS.contains(identifier.charAt(start)) && start > 0){
+            start--;
+        }
+
+        String baseSelector = identifier.substring(start, end).trim();
+        char firstChar = baseSelector.charAt(0);
+
+        if(firstChar == '>' || firstChar == '+'|| firstChar == '~')
+            return identifier.substring(start + 1, end);
+
+        return baseSelector;
+    }
+
+    private CSS createCSS(String styleString) throws InvalidSyntaxException {
+        CSS css = new CSS(this.fileName);
+        String[] styles = styleString.split(";");
+
+        for(String style: styles){
+            String[] styleParts = style.split(":");
+
+            if(styleParts.length > 2)
+                throw(new InvalidSyntaxException(this.fileName));
+
+            css.addField(styleParts[0], styleParts[1]);
+        }
+
+        return css;
+    }
+
+    private String getBlock(StringBuilder cssString, int end) throws InvalidSyntaxException {
+        int openCount = 0;
         String block = cssString.substring(0, end + 1);
         cssString.delete(0, end + 1);
+
+        for(int i = 0; i < block.length(); i++){
+            if(block.charAt(i) == '{'){
+                openCount++;
+
+                if(openCount > 1) throw new InvalidSyntaxException(this.fileName);
+            }
+        }
+
         return block;
     }
 
-    public String stripComments(String line){
+    private String stripComments(String line){
         int startIndex = line.indexOf(OPEN_COMMENT);
         int endIndex = line.indexOf(CLOSE_COMMENT);
         String cleanLine = line;
@@ -108,7 +184,7 @@ public class Parser {
         return cleanLine;
     }
 
-    public String stripComments(String line, int startIndex, int endIndex){
+    private String stripComments(String line, int startIndex, int endIndex){
         line = line.trim();
 
         if(line.length() == 0) return line;
@@ -147,11 +223,12 @@ public class Parser {
                 "}";
 
         try {
-            testParser = new Parser("style.css", new HashMap<>());
+            testParser = new Parser("style2.css", new HashMap<>());
             //System.out.println(testParser.stripComments(test));
             testParser.parse();
-        } catch (InvalidExtensionException iee){
-            System.out.println(iee.getMessage());
+            System.out.println(testParser.getBaseSelector("a+* fg"));
+        } catch (Exception iee){
+            iee.printStackTrace();
         }
 
     }
