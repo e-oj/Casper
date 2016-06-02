@@ -1,0 +1,96 @@
+.prompt-div{
+    position: absolute;
+    width: 100%;
+    top: 30%;
+}
+
+.name-prompt input:focus{
+    outline: none;
+}
+
+.name-prompt{
+    position: relative;
+    width: 600px;
+    border: 1px solid cornflowerblue;
+    margin: auto;
+}
+/*
+    I be a comment
+*/
+
+.name-input{
+    position: relative;
+    display: block;
+    color: cornflowerblue;
+    border: none;
+    border-bottom: solid 1px lightgray;
+    margin: auto;
+    margin-top: 20px;
+    font-size: 12pt;
+}
+
+.name-submit{
+    display: block;
+    font-size: 12pt;
+    border-radius: 0;
+    background-color: white;
+    border: 1px solid cornflowerblue;
+    color: cornflowerblue;
+    width: 100px;
+    margin: auto;
+    margin-top: 15px;
+    margin-bottom: 15px;
+}
+
+.name-submit:hover{
+    cursor: pointer;
+    background-color: dodgerblue;
+    color: white;
+}
+
+.quest-prompt{
+    position: relative;
+    width: 600px;
+    margin: auto;
+    border: 1px solid cornflowerblue;
+    margin-top: 25px;
+    font-family: "Courier New", sans-serif;
+}
+
+.ans-submit{
+    margin: 25px;
+}
+
+.see-ans{
+    width: 200px;
+}
+
+.quest-prompt .question{
+    margin: 15px;
+}
+
+.quest-prompt label{
+    display: block;
+    margin: 15px;
+}
+
+.success{
+    margin: 25px;
+    color: green;
+    font-size: 15pt;
+}
+
+.error{
+    margin: 25px;
+    color: red;
+    font-size: 15pt;
+}
+
+.responses{
+    margin: 15px;
+}
+
+.responses .response{
+    border: 1px solid cornflowerblue;
+    padding: 10px;
+}
