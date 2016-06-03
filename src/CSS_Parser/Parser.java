@@ -41,12 +41,12 @@ public class Parser {
         return splitName[splitName.length-1].toLowerCase().equals("css");
     }
 
-    public void parse(){
+    public void parse() throws InvalidSyntaxException{
         StringBuilder cssString = new StringBuilder();
 
         this.br.lines().forEach(line -> {
             if(!this.inComment) {
-                line = stripComments(line.trim()).trim();
+                line = this.stripComments(line.trim());
 
                 if (line.length() > 0) {
                     cssString.append(line);
@@ -57,12 +57,7 @@ public class Parser {
             }
         });
 
-        try {
-            parseCSS(cssString);
-        } catch(InvalidSyntaxException ife){
-            ife.printStackTrace();
-            System.exit(1);
-        }
+        this.parseCSS(cssString);
     }
 
     private void parseCSS(StringBuilder cssString) throws InvalidSyntaxException {
@@ -77,7 +72,7 @@ public class Parser {
                 throw new InvalidSyntaxException(this.fileName);
             }
 
-            parseCssBlock(getBlock(cssString, closeIndex));
+            this.parseCssBlock(this.getBlock(cssString, closeIndex));
         }
     }
 
@@ -90,7 +85,7 @@ public class Parser {
         ArrayList<CSS> styleList;
 
         for(String s: iSplit){
-            String key = getBaseSelector(s);
+            String key = this.getBaseSelector(s);
             CSS val = new CSS(css, s);
 
             if(globMap.containsKey(key)){
@@ -103,7 +98,7 @@ public class Parser {
             }
         }
 
-        System.out.println(identifiers + css);
+//        System.out.println(identifiers + css);
     }
 
     private String getBaseSelector(String identifier) throws InvalidSyntaxException {
@@ -181,7 +176,7 @@ public class Parser {
             endIndex = cleanLine.indexOf(CLOSE_COMMENT);
         }
 
-        return cleanLine;
+        return cleanLine.trim();
     }
 
     private String stripComments(String line, int startIndex, int endIndex){
@@ -216,20 +211,21 @@ public class Parser {
 
     public static void main(String[] args) {
         Parser testParser;
-        String test = ".prompt-div{\n" +
-                "    position: absolute;\n" +
-                "    /*width: 100%;*/\n" +
-                "    top: 30%;\n" +
-                "}";
+        Map<String, List<CSS>> globMap = new HashMap<>();
 
         try {
-            testParser = new Parser("style2.css", new HashMap<>());
-            //System.out.println(testParser.stripComments(test));
+            testParser = new Parser("style2.css", globMap);
             testParser.parse();
-            System.out.println(testParser.getBaseSelector("a+* fg"));
+
+            globMap.forEach((key, val) -> {
+                System.out.println(key);
+                System.out.println("_________________________________________________________________");
+                val.forEach(System.out::println);
+                System.out.println("=====================================================================");
+            });
+
         } catch (Exception iee){
             iee.printStackTrace();
         }
-
     }
 }

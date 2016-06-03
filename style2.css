@@ -8,6 +8,11 @@
     outline: none;
 }
 
+div .prompt-div{
+    color: black;
+    height: 6px;
+}
+
 .name-prompt{
     position: relative;
     width: 600px;
