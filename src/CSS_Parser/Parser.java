@@ -20,6 +20,7 @@ public class Parser {
     private Map<String, List<CSS>> globMap;
     private BufferedReader br;
     private boolean inComment = false;
+    private final InvalidSyntaxException IVSE;
 
     public Parser(String fileName, Map<String, List<CSS>> globMap) throws InvalidExtensionException {
         if(!validExt(fileName)) throw new InvalidExtensionException(fileName);
@@ -33,6 +34,7 @@ public class Parser {
 
         this.fileName = fileName;
         this.globMap = globMap;
+        this.IVSE = new InvalidSyntaxException(this.fileName);
     }
 
     private boolean validExt(String fileName){
@@ -71,7 +73,7 @@ public class Parser {
 
             if(openIndex <= 0 || closeIndex < 0 || openIndex > closeIndex) {
                 System.out.println(cssString);
-                throw new InvalidSyntaxException(this.fileName);
+                throw this.IVSE;
             }
 
             block = this.getBlock(cssString, closeIndex);
@@ -121,7 +123,7 @@ public class Parser {
 
         if(first == '>' || first == '+' || first == '~'){
             System.out.println(identifier);
-            throw new InvalidSyntaxException(this.fileName);
+            throw this.IVSE;
         }
         
         while(!SELECTORS.contains(identifier.charAt(start)) && start > 0){
@@ -149,7 +151,7 @@ public class Parser {
             }
             else if(styleParts.length > 2) {
                 System.out.println(styleString);
-                throw (new InvalidSyntaxException(this.fileName));
+                throw this.IVSE;
             }
             else css.addField(styleParts[0], styleParts[1]);
         }
@@ -161,7 +163,11 @@ public class Parser {
         int openCount = 0;
 
         if(cssString.substring(0, cssString.indexOf("{")).contains("@")){
-            cssString.delete(0, cssString.indexOf("}}") + 2);
+            int atEnd = cssString.indexOf("}}");
+
+            if(atEnd < 0) throw this.IVSE;
+
+            cssString.delete(0, atEnd + 2);
             return "";
         }
 
@@ -174,7 +180,7 @@ public class Parser {
 
                 if(openCount > 1){
                     System.out.println(block);
-                    throw new InvalidSyntaxException(this.fileName);
+                    throw this.IVSE;
                 }
             }
         }
