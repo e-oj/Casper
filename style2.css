@@ -1,4 +1,4 @@
-.prompt-div{
+/*Making sure u #CantTouchThis*/.prompt-div{
     position: absolute;
     width: 100%;
     top: 30%;
@@ -11,6 +11,15 @@
 div .prompt-div{
     color: black;
     height: 6px;
+}
+/*testing
+*/ .its-me{
+    color: blue;
+   }
+
+.hello .its-me{
+    width: 80%;
+    margin: auto;
 }
 
 .name-prompt{
