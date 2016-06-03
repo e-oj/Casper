@@ -63,16 +63,20 @@ public class Parser {
     private void parseCSS(StringBuilder cssString) throws InvalidSyntaxException {
         int openIndex;
         int closeIndex;
+        String block;
 
         while(cssString.length() > 0){
             openIndex = cssString.indexOf("{");
             closeIndex = cssString.indexOf("}");
 
             if(openIndex <= 0 || closeIndex < 0 || openIndex > closeIndex) {
+                System.out.println(cssString);
                 throw new InvalidSyntaxException(this.fileName);
             }
 
-            this.parseCssBlock(this.getBlock(cssString, closeIndex));
+            block = this.getBlock(cssString, closeIndex);
+
+            if(block.length() > 0)this.parseCssBlock(block);
         }
     }
 
@@ -140,10 +144,14 @@ public class Parser {
         for(String style: styles){
             String[] styleParts = style.split(":");
 
-            if(styleParts.length > 2)
-                throw(new InvalidSyntaxException(this.fileName));
-
-            css.addField(styleParts[0], styleParts[1]);
+            if(styleParts[0].toLowerCase().equals("filter")){
+                css.addField(styleParts[0], "No support for " + styleParts[0] + " prop");
+            }
+            else if(styleParts.length > 2) {
+                System.out.println(styleString);
+                throw (new InvalidSyntaxException(this.fileName));
+            }
+            else css.addField(styleParts[0], styleParts[1]);
         }
 
         return css;
@@ -151,6 +159,12 @@ public class Parser {
 
     private String getBlock(StringBuilder cssString, int end) throws InvalidSyntaxException {
         int openCount = 0;
+
+        if(cssString.substring(0, cssString.indexOf("{")).contains("@")){
+            cssString.delete(0, cssString.indexOf("}}") + 2);
+            return "";
+        }
+
         String block = cssString.substring(0, end + 1);
         cssString.delete(0, end + 1);
 
@@ -158,7 +172,10 @@ public class Parser {
             if(block.charAt(i) == '{'){
                 openCount++;
 
-                if(openCount > 1) throw new InvalidSyntaxException(this.fileName);
+                if(openCount > 1){
+                    System.out.println(block);
+                    throw new InvalidSyntaxException(this.fileName);
+                }
             }
         }
 
@@ -212,17 +229,28 @@ public class Parser {
     public static void main(String[] args) {
         Parser testParser;
         Map<String, List<CSS>> globMap = new HashMap<>();
+        long start;
+        long end;
+        long timeTaken;
 
         try {
-            testParser = new Parser("style2.css", globMap);
+            testParser = new Parser("bootstrap.css", globMap);
+            start =  System.currentTimeMillis();
             testParser.parse();
+            end = System.currentTimeMillis();
+            timeTaken = end - start;
 
             globMap.forEach((key, val) -> {
-                System.out.println(key);
-                System.out.println("_________________________________________________________________");
-                val.forEach(System.out::println);
-                System.out.println("=====================================================================");
+                if(val.size() > 1) {
+                    System.out.println(key);
+                    System.out.println("_________________________________________________________________");
+                    val.forEach(System.out::println);
+                    System.out.println("=====================================================================");
+                }
             });
+
+            System.out.println("\ntook: " + timeTaken + "ms");
+            System.out.println("Size of table: " + globMap.size());
 
         } catch (Exception iee){
             iee.printStackTrace();
