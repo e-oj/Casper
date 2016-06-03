@@ -367,7 +367,7 @@ public class Parser {
         long timeTaken;
 
         try {
-            testParser = new Parser("style2.css", globMap);
+            testParser = new Parser("bootstrap.css", globMap);
             start =  System.currentTimeMillis();
             testParser.parse();
             end = System.currentTimeMillis();
