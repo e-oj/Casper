@@ -186,8 +186,7 @@ public class Parser {
      *
      * @param identifier a String of identifiers
      *
-     * @throws InvalidSyntaxException if illegal certain Illegal characters
-     * are encountered or from the methods called (createCSS and getBaseSelector);
+     * @throws InvalidSyntaxException if certain Illegal characters are encountered
      */
     private String getBaseSelector(String identifier) throws InvalidSyntaxException {
         identifier = identifier.trim();
@@ -221,6 +220,20 @@ public class Parser {
         return baseSelector;
     }
 
+    /**
+     * Creates a CSS object from a style String. A style String would look like
+     * <p>
+     * width: 20%;height: 20px;color: blue;
+     * <p>
+     * look at the style String and #FollowTheCode and it will all
+     * become clear. #IBeliveInYouFutureEmmanuel or should I say
+     * #PresentEmmanuel cuz it'll be the present when you're reading this
+     * in the future. #INeedToSleep
+     *
+     * @param styleString The styleString to create the object from
+     * @return a CSS object;
+     * @throws InvalidSyntaxException if I detect nonsense
+     */
     private CSS createCSS(String styleString) throws InvalidSyntaxException {
         CSS css = new CSS(this.fileName);
         String[] styles = styleString.split(";");
@@ -241,9 +254,22 @@ public class Parser {
         return css;
     }
 
+    /**
+     * Gets the string between 0 and the given end (inclusively)
+     * from the StringBuilder then it deletes that block from
+     * the StringBuilder
+     *
+     * @param cssString the string to extract a block from
+     * @param end the end index (inclusive)
+     *
+     * @return a css String or an empty string if it's an @property block
+     *
+     * @throws InvalidSyntaxException if there's some nonsense going on
+     */
     private String getBlock(StringBuilder cssString, int end) throws InvalidSyntaxException {
         int openCount = 0;
 
+        //this beauty cuts out @ blocks
         if(cssString.substring(0, cssString.indexOf("{")).contains("@")){
             int atEnd = cssString.indexOf("}}");
 
@@ -270,6 +296,13 @@ public class Parser {
         return block;
     }
 
+    /**
+     * Strips comments from a String.
+     *
+     * @param line the String to be stripped
+     *
+     * @return the clean string.
+     */
     private String stripComments(String line){
         int startIndex = line.indexOf(OPEN_COMMENT);
         int endIndex = line.indexOf(CLOSE_COMMENT);
@@ -284,6 +317,18 @@ public class Parser {
         return cleanLine.trim();
     }
 
+    /**
+     * Cuts out the Sting between startIndex and endIndex.
+     * startIndex is the index of "/*", end index is the index of
+     * the closing comment symbol. Follow the code and all will be
+     * made clear.
+     *
+     * @param line theline to strip
+     * @param startIndex "/*"
+     * @param endIndex the index of the closing comment symbol.
+     *
+     * @return a string with the appropriate potion cut out.
+     */
     private String stripComments(String line, int startIndex, int endIndex){
         line = line.trim();
 
@@ -293,10 +338,7 @@ public class Parser {
         boolean hasStart = startIndex >= 0;
         boolean hasEnd = endIndex >= 0;
 
-        if(!(hasStart || hasEnd)){
-//            this.inComment
-            return line;
-        }
+        if(!(hasStart || hasEnd)) return line;
 
         endIndex = hasEnd ? endIndex: line.length() - 1;
         startIndex = hasStart ? startIndex : 0;
