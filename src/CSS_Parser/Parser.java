@@ -222,9 +222,9 @@ public class Parser {
 
     /**
      * Creates a CSS object from a style String. A style String would look like
-     * <p>
-     * width: 20%;height: 20px;color: blue;
-     * <p>
+     *
+     *      width: 20%;height: 20px;color: blue;
+     *
      * look at the style String and #FollowTheCode and it will all
      * become clear. #IBeliveInYouFutureEmmanuel or should I say
      * #PresentEmmanuel cuz it'll be the present when you're reading this
