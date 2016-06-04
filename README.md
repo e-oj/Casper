@@ -20,4 +20,4 @@ It ignores @ rules for now (until a reason for going through the stress of inclu
 
 It also ignores the value of the filter attribute like so
 
-    .flint-michigan-water{filter: does not support filter prop}
+    .flint-michigan-water{filter: No support for filter prop}
