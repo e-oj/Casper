@@ -268,14 +268,20 @@ public class Parser {
      */
     private String getBlock(StringBuilder cssString, int end) throws InvalidSyntaxException {
         int openCount = 0;
+        String rule = cssString.substring(0, cssString.indexOf("{")).toLowerCase();
 
         //this beauty cuts out @ blocks
-        if(cssString.substring(0, cssString.indexOf("{")).contains("@")){
-            int atEnd = cssString.indexOf("}}");
+        if (rule.contains("@")) {
+            boolean complexAt = rule.contains("media")
+                    || rule.contains("keyframes")
+                    || rule.contains("document")
+                    || rule.contains("supports");
+
+            int atEnd = complexAt ? cssString.indexOf("}}") + 2 : cssString.indexOf("}") + 1;
 
             if(atEnd < 0) throw this.IVSE;
 
-            cssString.delete(0, atEnd + 2);
+            cssString.delete(0, atEnd);
             return "";
         }
 
@@ -323,7 +329,7 @@ public class Parser {
      * the closing comment symbol. Follow the code and all will be
      * made clear.
      *
-     * @param line theline to strip
+     * @param line the line to strip
      * @param startIndex "/*"
      * @param endIndex the index of the closing comment symbol.
      *
