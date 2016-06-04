@@ -1,4 +1,4 @@
-# Casper
+# Casper (in progress...)
 
 A program that checks css files for duplicate declarations of styles on the same element, Id or classname.
 Examples of duplicates:
@@ -11,6 +11,8 @@ It will also mark weak duplicates (controlled by an option) such as
     .sky{color: blue}
     .venus .sky{color: red}
     .mars > .sky {color: purple}
+    
+Can be used when adding external css libraries to your web project.
   
 It ignores @ rules for now (until a reason for going through the stress of including them is found)
     
