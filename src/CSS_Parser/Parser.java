@@ -82,19 +82,19 @@ public class Parser {
      * @throws InvalidSyntaxException from the parseCSS method
      */
     public void parse() throws InvalidSyntaxException{
-        StringBuilder cssString = new StringBuilder();
+        StringBuilder minified = new StringBuilder();
 
         this.br.lines().forEach(line -> {
             if(!this.inComment || line.contains(CLOSE_COMMENT)) {
                 line = this.stripComments(line.trim());
 
                 if (line.length() > 0) {
-                    cssString.append(line);
+                    minified.append(line);
                 }
             }
         });
 
-        this.parseCSS(cssString);
+        this.parseCSS(minified);
     }
 
     /**
@@ -367,7 +367,7 @@ public class Parser {
         long timeTaken;
 
         try {
-            testParser = new Parser("bootstrap.css", globMap);
+            testParser = new Parser("bootstrap.min.css", globMap);
             start =  System.currentTimeMillis();
             testParser.parse();
             end = System.currentTimeMillis();
