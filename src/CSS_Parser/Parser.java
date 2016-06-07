@@ -19,14 +19,14 @@ import java.util.*;
  * @author Emmanuel Olaojo
  * @since 6/1/16
  */
-public class Parser {
+public class Parser extends Thread {
     private static final String OPEN_COMMENT = "/*";
     private static final String CLOSE_COMMENT = "*/";
     private String fileName;
     private Map<String, List<CSS>> globMap;
     private BufferedReader br;
     private boolean inComment = false;
-    private final InvalidSyntaxException IVSE;
+    private InvalidSyntaxException IVSE;
 
     /**
      * Constructor takes a file name and the Map that stores the
@@ -40,19 +40,26 @@ public class Parser {
      *
      * @throws InvalidExtensionException if the file has an Invalid extension.
      */
-    public Parser(String fileName, Map<String, List<CSS>> globMap) throws InvalidExtensionException {
-        if(!validExt(fileName)) throw new InvalidExtensionException(fileName);
+    public Parser(String fileName, Map<String, List<CSS>> globMap) throws
+            FileNotFoundException
+            , InvalidExtensionException {
+        this.setFile(fileName);
 
-        try {
-            this.br = new BufferedReader(new FileReader(new File(fileName)));
-        } catch(FileNotFoundException fnf){
-            System.err.println("File Not found");
-            System.exit(1);
-        }
-
-        this.fileName = fileName;
         this.globMap = globMap;
         this.IVSE = new InvalidSyntaxException(this.fileName);
+    }
+
+    public Parser(Map<String, List<CSS>> globMap) {
+        this.globMap = globMap;
+        this.IVSE = new InvalidSyntaxException(this.fileName);
+    }
+
+    public void setFile(String fileName) throws FileNotFoundException, InvalidExtensionException {
+        if (!validExt(fileName)) throw new InvalidExtensionException(fileName);
+
+        this.br = new BufferedReader(new FileReader(new File(fileName)));
+        this.fileName = fileName;
+        this.IVSE = new InvalidSyntaxException(fileName);
     }
 
     /**
@@ -73,8 +80,8 @@ public class Parser {
      * Reads the file line by line, passes each line through a method
      * that strips out comments, then it adds the line to a StringBuilder
      * (StringBuilder is used, over concatenation, for efficiency). If
-     * inComment is true, it checks the current line for the close
-     * and if a close comment is present, the line gets added to the
+     * inComment is true, it checks the current line for the close comment
+     * symbol and if a close comment is present, the line gets added to the
      * StringBuilder, else, the line is seen as a comment and is
      * ignored. When all the lines have been added to the StringBuilder,
      * we run it through the parseCSS method for further processing.
@@ -89,7 +96,7 @@ public class Parser {
                 line = this.stripComments(line.trim());
 
                 if (line.length() > 0) {
-                    minified.append(line);
+                    minified.append(line.toLowerCase());
                 }
             }
         });
@@ -241,7 +248,7 @@ public class Parser {
         for(String style: styles){
             String[] styleParts = style.split(":");
 
-            if(styleParts[0].toLowerCase().equals("filter")){
+            if (styleParts[0].equals("filter")) {
                 css.addField(styleParts[0], "No support for " + styleParts[0] + " prop");
             }
             else if(styleParts.length > 2) {
@@ -268,7 +275,7 @@ public class Parser {
      */
     private String getBlock(StringBuilder cssString, int end) throws InvalidSyntaxException {
         int openCount = 0;
-        String rule = cssString.substring(0, cssString.indexOf("{")).toLowerCase();
+        String rule = cssString.substring(0, cssString.indexOf("{"));
 
         //this beauty cuts out @ blocks
         if (rule.contains("@")) {
@@ -366,30 +373,30 @@ public class Parser {
     }
 
     public static void main(String[] args) {
-        Parser testParser;
         Map<String, List<CSS>> globMap = new HashMap<>();
+        Parser testParser = new Parser(globMap);
         long start;
         long end;
         long timeTaken;
 
         try {
-            testParser = new Parser("bootstrap.min.css", globMap);
+            testParser.setFile("bootstrap.min.css");
             start =  System.currentTimeMillis();
             testParser.parse();
             end = System.currentTimeMillis();
             timeTaken = end - start;
 
-            globMap.forEach((key, val) -> {
-                if(val.size() > 1) {
-                    System.out.println(key);
-                    System.out.println("_________________________________________________________________");
-                    val.forEach(System.out::println);
-                    System.out.println("=====================================================================");
-                }
-            });
-
-            System.out.println("\ntook: " + timeTaken + "ms");
-            System.out.println("Size of table: " + globMap.size());
+//            globMap.forEach((key, val) -> {
+//                if(val.size() > 1) {
+//                    System.out.println(key);
+//                    System.out.println("_________________________________________________________________");
+//                    val.forEach(System.out::println);
+//                    System.out.println("=====================================================================");
+//                }
+//            });
+//
+//            System.out.println("\ntook: " + timeTaken + "ms");
+//            System.out.println("Size of table: " + globMap.size());
 
         } catch (Exception iee){
             iee.printStackTrace();
