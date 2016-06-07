@@ -7,7 +7,7 @@ import java.util.Map;
  * @author Emmanuel Olaojo
  * @since 5/30/16
  */
-public class CSS {
+public class CSS implements Comparable{
     Map<String, String> cssData = new HashMap<>();
     private String fileName;
     private String identifier = "";
@@ -33,6 +33,27 @@ public class CSS {
 
     public String getFileName(){
         return this.fileName;
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+
+        CSS css = (CSS) o;
+
+        if (!cssData.equals(css.cssData)) return false;
+        if (!fileName.equals(css.fileName)) return false;
+        return identifier.equals(css.identifier);
+
+    }
+
+    @Override
+    public int hashCode() {
+        int result = cssData.hashCode();
+        result = 31 * result + fileName.hashCode();
+        result = 31 * result + identifier.hashCode();
+        return result;
     }
 
     public String toString(){
@@ -61,5 +82,11 @@ public class CSS {
         style.addField("color", "#F8F8F8");
 
         System.out.println(style);
+    }
+
+    @Override
+    public int compareTo(Object o) {
+        CSS css = (CSS) o;
+        return this.identifier.compareTo(css.identifier);
     }
 }

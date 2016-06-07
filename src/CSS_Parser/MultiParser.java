@@ -1,13 +1,13 @@
 package CSS_Parser;
 
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import Utils.Logger;
+import Utils.Utilities;
+
+import java.util.*;
 
 /**
  * @author Emmanuel Olaojo
- * @contributor Obinna Elobi
+ * @author  Obinna Elobi
  * @since 6/6/16
  */
 public class MultiParser extends Thread{
@@ -18,8 +18,6 @@ public class MultiParser extends Thread{
     public MultiParser( List<String> files, Map<String, List<CSS>> globMap) {
         this.files = files;
         this.globMap = globMap;
-        
-        
     }
 
     //synchronous
@@ -41,31 +39,85 @@ public class MultiParser extends Thread{
     //multithreaded
     public void parseAsync() {
     	files.forEach(file ->  {
-    		
     		try {
-    			
 				new Thread(new Parser(file, globMap)).start();
 			} catch (Exception e) {
 				// TODO Auto-generated catch block
 				e.printStackTrace();
 			}
-    		System.out.println("parsing started");
-			
     	});
-    	
-    	
     }
 
     public static void main(String[] args) {
     	Map<String, List<CSS>> globMap = new HashMap<>();
+    	Map<String, List<CSS>> globMap2 = new HashMap<>();
         List<String> files = new ArrayList<>();
         MultiParser parser = new MultiParser(files, globMap);
+        MultiParser parser2 = new MultiParser(files, globMap2);
+        Logger asyncLog = new Logger("async.txt", false);
+        Logger syncLog = new Logger("sync.txt", false);
+        Logger testLog = new Logger("test.txt", true);
+
         long start, start2;
         long end, end2;
         long timeTaken, timeTaken2;
 
         files.add("style2.css");
         files.add("style2.css");
+        files.add("bootstrap.css");
+        files.add("bootstrap.css");
+        files.add("bootstrap.css");
+        files.add("bootstrap.css");
+        files.add("bootstrap.css");
+        files.add("bootstrap.css");
+        files.add("bootstrap.css");
+        files.add("bootstrap.css");
+        files.add("bootstrap.css");
+        files.add("bootstrap.css");
+        files.add("bootstrap.css");
+        files.add("bootstrap.css");
+        files.add("bootstrap.css");
+        files.add("bootstrap.css");
+        files.add("bootstrap.css");
+        files.add("bootstrap.css");
+        files.add("bootstrap.css");
+        files.add("bootstrap.css");
+        files.add("bootstrap.css");
+        files.add("bootstrap.css");
+        files.add("bootstrap.css");
+        files.add("bootstrap.css");
+        files.add("bootstrap.css");
+        files.add("bootstrap.css");
+        files.add("bootstrap.css");
+        files.add("bootstrap.css");
+        files.add("bootstrap.css");
+        files.add("bootstrap.css");
+        files.add("bootstrap.css");
+        files.add("bootstrap.css");
+        files.add("bootstrap.css");
+        files.add("bootstrap.css");
+        files.add("bootstrap.css");
+        files.add("bootstrap.css");
+        files.add("bootstrap.css");
+        files.add("bootstrap.css");
+        files.add("bootstrap.css");
+        files.add("bootstrap.css");
+        files.add("bootstrap.css");
+        files.add("bootstrap.css");
+        files.add("bootstrap.css");
+        files.add("bootstrap.css");
+        files.add("bootstrap.css");
+        files.add("bootstrap.css");
+        files.add("bootstrap.css");
+        files.add("bootstrap.css");
+        files.add("bootstrap.css");
+        files.add("bootstrap.css");
+        files.add("bootstrap.css");
+        files.add("bootstrap.css");
+        files.add("bootstrap.css");
+        files.add("bootstrap.css");
+        files.add("bootstrap.css");
+        files.add("bootstrap.css");
         files.add("bootstrap.css");
         files.add("bootstrap.min.css");
 
@@ -78,33 +130,43 @@ public class MultiParser extends Thread{
         
         //Sync Call
         start2 = System.currentTimeMillis();
-        parser.parseSync();
+        parser2.parseSync();
         end2 = System.currentTimeMillis();
 
         timeTaken2 = end2 - start2;
-        
+
         
         /**
          * make the multiparser wait for the other threads
          */
         try {
-			Thread.sleep(500);
-		} catch (InterruptedException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		}
+            Thread.sleep(500);
+        } catch (InterruptedException e) {
+            // TODO Auto-generated catch block
+            e.printStackTrace();
+        }
 
-        globMap.forEach((key, val) -> {
-            if (val.size() > 1) {
-                System.out.println(key);
-                System.out.println("_________________________________________________________________");
-                val.forEach(System.out::println);
-                System.out.println("=====================================================================");
-            }
-        });
+        Utilities.logMap(globMap, asyncLog);
+        Utilities.logMap(globMap2, syncLog);
+
+        testLog.println("\nAsync took: " + timeTaken + "ms");
+        testLog.println("\nSync took: " + timeTaken2 + "ms");
+        testLog.println("\nSize of table: " + globMap.size());
+        testLog.println("______________________________________________________________________________________");
 
         System.out.println("\nAsync took: " + timeTaken + "ms");
         System.out.println("\nSync took: " + timeTaken2 + "ms");
-        System.out.println("Size of table: " + globMap.size());
+        testLog.println("\nSize of table: " + globMap.size() + "\n");
+
+        Scanner in = new Scanner(System.in);
+        System.out.print("Delete log file (" + testLog.getFileName() +")? y/n: ");
+        if(in.nextLine().trim().charAt(0) == 'y') testLog.cleanUp();
+
+        System.out.print("Delete log files (" + asyncLog.getFileName() + ", " + syncLog.getFileName() + ")? y/n: ");
+
+        if(in.nextLine().trim().charAt(0) == 'y'){
+            asyncLog.cleanUp();
+            syncLog.cleanUp();
+        }
     }
 }

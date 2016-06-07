@@ -2,6 +2,7 @@ package CSS_Parser;
 
 import Exceptions.InvalidExtensionException;
 import Exceptions.InvalidSyntaxException;
+import Utils.Utilities;
 
 import java.io.BufferedReader;
 import java.io.File;
@@ -24,7 +25,7 @@ public class Parser implements Runnable {
     private static final String OPEN_COMMENT = "/*";
     private static final String CLOSE_COMMENT = "*/";
     private String fileName;
-    private Map<String, List<CSS>> globMap;
+    private final Map<String, List<CSS>> globMap;
     private BufferedReader br;
     private boolean inComment = false;
     private InvalidSyntaxException IVSE;
@@ -159,31 +160,27 @@ public class Parser implements Runnable {
         String style = styleParts[1];
         CSS css = createCSS(style);
         String[] iSplit = identifiers.split(",");
-        ArrayList<CSS> styleList;
+        List<CSS> styleList;
 
         if(identifiers.contains(";")) throw this.IVSE;
 
         for(String s: iSplit){
-        	String key = this.getBaseSelector(s);
+            String key = this.getBaseSelector(s);
             CSS val = new CSS(css, s);
-            
-           synchronized(globMap){ 
-            if(globMap.containsKey(key)){
-                globMap.get(key).add(val);
+
+            synchronized(globMap){
+                if(globMap.containsKey(key)){
+                    globMap.get(key).add(val);
+                }
+                else{
+                    styleList = new ArrayList<>();
+                    styleList.add(val);
+                    globMap.put(key, styleList);
+                }
+
             }
-            else{
-                styleList = new ArrayList<>();
-                styleList.add(val);
-                globMap.put(key, styleList);
-            }
-            
-           }
             
         }
-
-       
-//        System.out.println(identifiers + css);
-        
     }
     
    
@@ -386,20 +383,15 @@ public class Parser implements Runnable {
 	 **/
 
     public void run(){
-		/*
-		 * Parse the file 
-		 */
-		 try {
-              
-                parse();
-                
-               
-            } catch (Exception e) {
-                System.out.println(e.getMessage());
-            }
-         
-		
-	}
+        /*
+        * Parse the file
+        */
+        try {
+            parse();
+        } catch (Exception e) {
+            System.out.println(e.getMessage());
+        }
+    }
     
     public static void main(String[] args) {
         Map<String, List<CSS>> globMap = new HashMap<>();
@@ -416,14 +408,7 @@ public class Parser implements Runnable {
             timeTaken = end - start;
            // System.out.println(timeTaken);
 
-            globMap.forEach((key, val) -> {
-                if(val.size() > 1) {
-                    System.out.println(key);
-                    System.out.println("_________________________________________________________________");
-                    val.forEach(System.out::println);
-                    System.out.println("=====================================================================");
-                }
-            });
+            Utilities.logMap(globMap);
 
             System.out.println("\ntook: " + timeTaken + "ms");
             System.out.println("Size of table: " + globMap.size());
