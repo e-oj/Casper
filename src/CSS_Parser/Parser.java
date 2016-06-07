@@ -381,7 +381,10 @@ public class Parser implements Runnable {
         return cleanString.toString();
     }
 
-    
+	/**
+	 *  Called When the the Parser threads are made and "started"
+	 **/
+
     public void run(){
 		/*
 		 * Parse the file 
