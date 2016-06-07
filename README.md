@@ -16,7 +16,7 @@ It will also mark weak duplicates (controlled by an option) such as
     
 It ignores @ rules for now (until a reason for going through the stress of including them is found)
     
-    @media, @font-face, etc
+    @media, @font-face, etc  
 
 It also ignores the value of the filter attribute like so
 
