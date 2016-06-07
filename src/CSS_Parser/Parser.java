@@ -17,9 +17,10 @@ import java.util.*;
  * are linked to the same element, classname or id.
  *
  * @author Emmanuel Olaojo
+ * @ contributor Obinna Elobi
  * @since 6/1/16
  */
-public class Parser extends Thread {
+public class Parser implements Runnable {
     private static final String OPEN_COMMENT = "/*";
     private static final String CLOSE_COMMENT = "*/";
     private String fileName;
@@ -101,7 +102,7 @@ public class Parser extends Thread {
             }
         });
 
-        this.parseCSS(minified);
+        parseCSS(minified);
     }
 
     /**
@@ -131,8 +132,8 @@ public class Parser extends Thread {
             }
 
             block = this.getBlock(cssString, closeIndex);
-
-            if(block.length() > 0)this.parseCssBlock(block);
+            
+            if(block.length() > 0)parseCssBlock(block);
         }
     }
 
@@ -163,9 +164,10 @@ public class Parser extends Thread {
         if(identifiers.contains(";")) throw this.IVSE;
 
         for(String s: iSplit){
-            String key = this.getBaseSelector(s);
+        	String key = this.getBaseSelector(s);
             CSS val = new CSS(css, s);
-
+            
+           synchronized(globMap){ 
             if(globMap.containsKey(key)){
                 globMap.get(key).add(val);
             }
@@ -174,10 +176,17 @@ public class Parser extends Thread {
                 styleList.add(val);
                 globMap.put(key, styleList);
             }
+            
+           }
+            
         }
 
+       
 //        System.out.println(identifiers + css);
+        
     }
+    
+   
 
     /**
      * This method takes in a String of identifiers e.g.
@@ -372,6 +381,23 @@ public class Parser extends Thread {
         return cleanString.toString();
     }
 
+    
+    public void run(){
+		/*
+		 * Parse the file 
+		 */
+		 try {
+              
+                parse();
+                
+               
+            } catch (Exception e) {
+                System.out.println(e.getMessage());
+            }
+         
+		
+	}
+    
     public static void main(String[] args) {
         Map<String, List<CSS>> globMap = new HashMap<>();
         Parser testParser = new Parser(globMap);
@@ -385,18 +411,19 @@ public class Parser extends Thread {
             testParser.parse();
             end = System.currentTimeMillis();
             timeTaken = end - start;
+           // System.out.println(timeTaken);
 
-//            globMap.forEach((key, val) -> {
-//                if(val.size() > 1) {
-//                    System.out.println(key);
-//                    System.out.println("_________________________________________________________________");
-//                    val.forEach(System.out::println);
-//                    System.out.println("=====================================================================");
-//                }
-//            });
-//
-//            System.out.println("\ntook: " + timeTaken + "ms");
-//            System.out.println("Size of table: " + globMap.size());
+            globMap.forEach((key, val) -> {
+                if(val.size() > 1) {
+                    System.out.println(key);
+                    System.out.println("_________________________________________________________________");
+                    val.forEach(System.out::println);
+                    System.out.println("=====================================================================");
+                }
+            });
+
+            System.out.println("\ntook: " + timeTaken + "ms");
+            System.out.println("Size of table: " + globMap.size());
 
         } catch (Exception iee){
             iee.printStackTrace();
