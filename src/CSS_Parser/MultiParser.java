@@ -156,7 +156,7 @@ public class MultiParser extends Thread{
 
         System.out.println("\nAsync took: " + timeTaken + "ms");
         System.out.println("\nSync took: " + timeTaken2 + "ms");
-        testLog.println("\nSize of table: " + globMap.size() + "\n");
+        System.out.println("\nSize of table: " + globMap.size() + "\n");
 
         Scanner in = new Scanner(System.in);
         System.out.print("Delete log file (" + testLog.getFileName() +")? y/n: ");
