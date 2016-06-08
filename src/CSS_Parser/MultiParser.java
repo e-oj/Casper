@@ -40,6 +40,7 @@ public class MultiParser extends Thread{
     	files.forEach(file ->  {
     		try {
 				new Thread(new Parser(file, globMap)).start();
+
 			} catch (Exception e) {
 				// TODO Auto-generated catch block
 				e.printStackTrace();
