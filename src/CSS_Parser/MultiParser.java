@@ -37,6 +37,14 @@ public class MultiParser extends Thread{
 
     //multithreaded
     public void parseAsync() {
+        files.forEach(file ->  {
+            try {
+                new Thread(new Parser(file, globMap)).start();
+            } catch (Exception e) {
+                // TODO Auto-generated catch block
+                e.printStackTrace();
+            }
+        });
     }
 
     public static void main(String[] args) {
