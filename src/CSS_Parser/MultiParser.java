@@ -4,6 +4,7 @@ import Utils.Logger;
 import Utils.Utilities;
 
 import java.util.*;
+import java.util.concurrent.*;
 
 /**
  * @author Emmanuel Olaojo
@@ -14,10 +15,14 @@ public class MultiParser extends Thread{
     private List<String> files;
     private Parser parser;
     private Map<String, List<CSS>> globMap;
+    private List<Future> futures = new LinkedList<>();
+    public final int MAX_POOL_SIZE;
 
     public MultiParser( List<String> files, Map<String, List<CSS>> globMap) {
+        int poolSize = 10;
         this.files = files;
         this.globMap = globMap;
+        this.MAX_POOL_SIZE = files.size() < poolSize ? files.size() : poolSize;
     }
 
     //synchronous
@@ -32,25 +37,39 @@ public class MultiParser extends Thread{
             }
         });
 
-        System.out.println("Done parsing");
+        System.out.println("Done sync");
     }
 
     //multithreaded
     public void parseAsync() {
+        ExecutorService exec = Executors.newFixedThreadPool(this.MAX_POOL_SIZE);
+
         files.forEach(file ->  {
             try {
-                new Thread(new Parser(file, globMap)).start();
+                this.futures.add(exec.submit(new Parser(file, globMap)));
             } catch (Exception e) {
                 // TODO Auto-generated catch block
                 e.printStackTrace();
             }
         });
+        exec.shutdown();
+    }
+
+    public List<Future> getFutures(){
+        return this.futures;
     }
 
     public static void main(String[] args) {
-    	Map<String, List<CSS>> globMap = new HashMap<>();
-    	Map<String, List<CSS>> globMap2 = new HashMap<>();
+    	final Map<String, List<CSS>> globMap = new HashMap<>();
+    	final Map<String, List<CSS>> globMap2 = new HashMap<>();
         List<String> files = new ArrayList<>();
+        int numFiles = 500;
+        String testFile = "bootstrap.css";
+
+        for(int i=0; i<numFiles; i++){
+            files.add(testFile);
+        }
+
         MultiParser parser = new MultiParser(files, globMap);
         MultiParser parser2 = new MultiParser(files, globMap2);
         Logger asyncLog = new Logger("async.txt", false);
@@ -61,13 +80,6 @@ public class MultiParser extends Thread{
         long end, end2;
         long timeTaken, timeTaken2;
 
-        files.add("style2.css");
-        files.add("style2.css");
-        for(int i=0; i<55; i++){
-            files.add("bootstrap.css");
-        }
-        files.add("bootstrap.min.css");
-
         //Async Call
         start = System.currentTimeMillis();
         parser.parseAsync();
@@ -75,15 +87,17 @@ public class MultiParser extends Thread{
         /**
          * make the multiparser wait for the other threads
          */
-        try {
-            Thread.sleep(500);
-        } catch (InterruptedException e) {
-            // TODO Auto-generated catch block
-            e.printStackTrace();
-        }
-
+        parser.getFutures().forEach(future -> {
+            try {
+                //equivalent to thread.join();
+                future.get();
+            } catch (Exception e) {
+                // TODO Auto-generated catch block
+                e.printStackTrace();
+            }
+        });
+        System.out.println("done Async");
         end = System.currentTimeMillis();
-
         timeTaken = end - start;
 
         //Sync Call
@@ -93,17 +107,19 @@ public class MultiParser extends Thread{
 
         timeTaken2 = end2 - start2;
 
-
-
-        System.out.println("done Async");
+        //log the maps to a file
         Utilities.logMap(globMap, asyncLog);
         Utilities.logMap(globMap2, syncLog);
 
+        testLog.println("Using: " + globMap.getClass().getSimpleName());
+        testLog.println("\nTesting on " + numFiles + " " + testFile + " files");
+        testLog.println("\nWith " + parser.MAX_POOL_SIZE + " threads");
         testLog.println("\nAsync took: " + timeTaken + "ms");
         testLog.println("\nSync took: " + timeTaken2 + "ms");
         testLog.println("\nSize of table: " + globMap.size());
         testLog.println("______________________________________________________________________________________");
 
+        System.out.println("Using: " + globMap.getClass().getSimpleName());
         System.out.println("\nAsync took: " + timeTaken + "ms");
         System.out.println("\nSync took: " + timeTaken2 + "ms");
         System.out.println("\nSize of table: " + globMap.size() + "\n");

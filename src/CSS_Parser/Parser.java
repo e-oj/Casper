@@ -9,6 +9,9 @@ import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.FileReader;
 import java.util.*;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.Future;
 
 /**
  * CSS parser for Casper. Parses the given CSS file and stores
@@ -45,8 +48,8 @@ public class Parser implements Runnable {
     public Parser(String fileName, Map<String, List<CSS>> globMap) throws
             FileNotFoundException
             , InvalidExtensionException {
-        this.setFile(fileName);
 
+        this.fileName = fileName;
         this.globMap = globMap;
         this.IVSE = new InvalidSyntaxException(this.fileName);
     }
@@ -61,6 +64,14 @@ public class Parser implements Runnable {
 
         this.br = new BufferedReader(new FileReader(new File(fileName)));
         this.fileName = fileName;
+        this.IVSE = new InvalidSyntaxException(fileName);
+    }
+
+    public void setFile() throws FileNotFoundException, InvalidExtensionException {
+        if(this.fileName == null) throw new FileNotFoundException("Filename is not set");
+        if (!validExt(this.fileName)) throw new InvalidExtensionException(fileName);
+
+        this.br = new BufferedReader(new FileReader(new File(this.fileName)));
         this.IVSE = new InvalidSyntaxException(fileName);
     }
 
@@ -103,6 +114,11 @@ public class Parser implements Runnable {
             }
         });
 
+        try {
+            br.close();
+        } catch (Exception e){
+            e.printStackTrace();
+        }
         parseCSS(minified);
     }
 
@@ -177,13 +193,9 @@ public class Parser implements Runnable {
                     styleList.add(val);
                     globMap.put(key, styleList);
                 }
-
             }
-            
         }
     }
-    
-   
 
     /**
      * This method takes in a String of identifiers e.g.
@@ -379,7 +391,7 @@ public class Parser implements Runnable {
     }
 
 	/**
-	 *  Called When the the Parser threads are made and "started"
+	 *  Called When the the Parser.java threads are made and "started"
 	 **/
 
     public void run(){
@@ -387,6 +399,7 @@ public class Parser implements Runnable {
         * Parse the file
         */
         try {
+            this.setFile();
             parse();
         } catch (Exception e) {
             System.out.println(e.getMessage());
@@ -401,7 +414,7 @@ public class Parser implements Runnable {
         long timeTaken;
 
         try {
-            testParser.setFile("bootstrap.min.css");
+            testParser.setFile("bootstrap.css");
             start =  System.currentTimeMillis();
             testParser.parse();
             end = System.currentTimeMillis();

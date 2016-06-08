@@ -12,18 +12,18 @@ import java.util.Map;
 public class Utilities {
     public static void logMap(Map<String, List<CSS>> map, Logger logger){
         map.forEach((key, val) -> {
-            if (val.size() > 1) {
+//            if (val.size() > 1) {
                 logger.println(key);
                 logger.println("_________________________________________________________________");
-                for(CSS css: val){
+                val.forEach(css -> {
                     try {
                         logger.println(css);
                     } catch (NullPointerException ne){
                         System.out.println(css);
                     }
-                }
+                });
                 logger.println("=====================================================================");
-            }
+//            }
         });
     }
 

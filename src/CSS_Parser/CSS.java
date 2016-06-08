@@ -74,7 +74,7 @@ public class CSS implements Comparable{
     }
 
     public static void main(String[] args) {
-        CSS style = new CSS("style2.css", ".test");
+        CSS style = new CSS("style.css", ".test");
 
         style.addField("position", "relative");
         style.addField("height", "20px");
