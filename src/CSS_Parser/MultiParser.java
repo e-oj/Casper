@@ -25,7 +25,6 @@ public class MultiParser extends Thread{
     	parser = new Parser(globMap);
         files.forEach(file -> {
             try {
-            	
                 parser.setFile(file);
                 parser.parse();
             } catch (Exception e) {
@@ -64,78 +63,15 @@ public class MultiParser extends Thread{
 
         files.add("style2.css");
         files.add("style2.css");
-        files.add("bootstrap.css");
-        files.add("bootstrap.css");
-        files.add("bootstrap.css");
-        files.add("bootstrap.css");
-        files.add("bootstrap.css");
-        files.add("bootstrap.css");
-        files.add("bootstrap.css");
-        files.add("bootstrap.css");
-        files.add("bootstrap.css");
-        files.add("bootstrap.css");
-        files.add("bootstrap.css");
-        files.add("bootstrap.css");
-        files.add("bootstrap.css");
-        files.add("bootstrap.css");
-        files.add("bootstrap.css");
-        files.add("bootstrap.css");
-        files.add("bootstrap.css");
-        files.add("bootstrap.css");
-        files.add("bootstrap.css");
-        files.add("bootstrap.css");
-        files.add("bootstrap.css");
-        files.add("bootstrap.css");
-        files.add("bootstrap.css");
-        files.add("bootstrap.css");
-        files.add("bootstrap.css");
-        files.add("bootstrap.css");
-        files.add("bootstrap.css");
-        files.add("bootstrap.css");
-        files.add("bootstrap.css");
-        files.add("bootstrap.css");
-        files.add("bootstrap.css");
-        files.add("bootstrap.css");
-        files.add("bootstrap.css");
-        files.add("bootstrap.css");
-        files.add("bootstrap.css");
-        files.add("bootstrap.css");
-        files.add("bootstrap.css");
-        files.add("bootstrap.css");
-        files.add("bootstrap.css");
-        files.add("bootstrap.css");
-        files.add("bootstrap.css");
-        files.add("bootstrap.css");
-        files.add("bootstrap.css");
-        files.add("bootstrap.css");
-        files.add("bootstrap.css");
-        files.add("bootstrap.css");
-        files.add("bootstrap.css");
-        files.add("bootstrap.css");
-        files.add("bootstrap.css");
-        files.add("bootstrap.css");
-        files.add("bootstrap.css");
-        files.add("bootstrap.css");
-        files.add("bootstrap.css");
-        files.add("bootstrap.css");
-        files.add("bootstrap.css");
+        for(int i=0; i<55; i++){
+            files.add("bootstrap.css");
+        }
         files.add("bootstrap.min.css");
 
         //Async Call
         start = System.currentTimeMillis();
         parser.parseAsync();
-        end = System.currentTimeMillis();
 
-        timeTaken = end - start;
-        
-        //Sync Call
-        start2 = System.currentTimeMillis();
-        parser2.parseSync();
-        end2 = System.currentTimeMillis();
-
-        timeTaken2 = end2 - start2;
-
-        
         /**
          * make the multiparser wait for the other threads
          */
@@ -146,6 +82,20 @@ public class MultiParser extends Thread{
             e.printStackTrace();
         }
 
+        end = System.currentTimeMillis();
+
+        timeTaken = end - start;
+
+        //Sync Call
+        start2 = System.currentTimeMillis();
+        parser2.parseSync();
+        end2 = System.currentTimeMillis();
+
+        timeTaken2 = end2 - start2;
+
+
+
+        System.out.println("done Async");
         Utilities.logMap(globMap, asyncLog);
         Utilities.logMap(globMap2, syncLog);
 
