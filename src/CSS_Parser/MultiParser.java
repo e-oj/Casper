@@ -23,21 +23,20 @@ public class MultiParser extends Thread{
     //synchronous
     public void parseSync() {
     	parser = new Parser(globMap);
+        files.forEach(file -> {
+            try {
+                parser.setFile(file);
+                parser.parse();
+            } catch (Exception e) {
+                System.out.println(e.getMessage());
+            }
+        });
 
         System.out.println("Done parsing");
     }
 
     //multithreaded
     public void parseAsync() {
-    	files.forEach(file ->  {
-    		try {
-				new Thread(new Parser(file, globMap)).start();
-
-			} catch (Exception e) {
-				// TODO Auto-generated catch block
-				e.printStackTrace();
-			}
-    	});
     }
 
     public static void main(String[] args) {
