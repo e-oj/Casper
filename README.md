@@ -5,14 +5,15 @@ Can be used when adding external css libraries to a web project.
   
 Examples of duplicates:
 
-    .sky{color: blue}
-    .sky{color: orange}
+    .sky{color: blue;}
+    .sky{color: orange;}
+    .sky{position: absolute;}
 
 It will also mark weak duplicates (controlled by an option) such as
 
-    .sky{color: blue}
-    .venus .sky{color: red}
-    .mars > .sky {color: purple}
+    .sky{color: blue;}
+    .venus .sky{color: red;}
+    .mars > .sky {color: purple;}
     
 It ignores @ rules for now (until a reason for going through the stress of including them is found)
     
@@ -20,4 +21,4 @@ It ignores @ rules for now (until a reason for going through the stress of inclu
 
 It also ignores the value of the filter attribute like so
 
-    .flint-michigan-water{filter: No support for filter prop}
+    .flint-michigan-water{filter: No support for filter prop;}
