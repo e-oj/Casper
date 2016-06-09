@@ -48,22 +48,28 @@ public class MultiParser extends Thread{
             try {
                 this.futures.add(exec.submit(new Parser(file, globMap)));
             } catch (Exception e) {
-                // TODO Auto-generated catch block
                 e.printStackTrace();
             }
         });
         exec.shutdown();
     }
 
-    public List<Future> getFutures(){
-        return this.futures;
+    public void endAsync(){
+        this.futures.forEach(future -> {
+            try {
+                //equivalent to thread.join();
+                future.get();
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+        });
     }
 
     public static void main(String[] args) {
     	final Map<String, List<CSS>> globMap = new HashMap<>();
     	final Map<String, List<CSS>> globMap2 = new HashMap<>();
         List<String> files = new ArrayList<>();
-        int numFiles = 500;
+        int numFiles = 1000;
         String testFile = "bootstrap.css";
 
         for(int i=0; i<numFiles; i++){
@@ -84,18 +90,9 @@ public class MultiParser extends Thread{
         start = System.currentTimeMillis();
         parser.parseAsync();
 
-        /**
-         * make the multiparser wait for the other threads
-         */
-        parser.getFutures().forEach(future -> {
-            try {
-                //equivalent to thread.join();
-                future.get();
-            } catch (Exception e) {
-                // TODO Auto-generated catch block
-                e.printStackTrace();
-            }
-        });
+        //make the multiParser wait for the other threads
+        parser.endAsync();
+
         System.out.println("done Async");
         end = System.currentTimeMillis();
         timeTaken = end - start;
@@ -126,11 +123,11 @@ public class MultiParser extends Thread{
 
         Scanner in = new Scanner(System.in);
         System.out.print("Delete log file (" + testLog.getFileName() +")? y/n: ");
-        if(in.nextLine().trim().charAt(0) == 'y') testLog.cleanUp();
+        if(in.nextLine().trim().toLowerCase().charAt(0) == 'y') testLog.cleanUp();
 
         System.out.print("Delete log files (" + asyncLog.getFileName() + ", " + syncLog.getFileName() + ")? y/n: ");
 
-        if(in.nextLine().trim().charAt(0) == 'y'){
+        if(in.nextLine().trim().toLowerCase().charAt(0) == 'y'){
             asyncLog.cleanUp();
             syncLog.cleanUp();
         }
