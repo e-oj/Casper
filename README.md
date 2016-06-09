@@ -7,13 +7,14 @@ Examples of duplicates:
 
     .sky{color: blue;}
     .sky{color: orange;}
-    .sky{position: absolute;}
+    .sky{position: fixed;}
 
 It will also mark weak duplicates (controlled by an option) such as
 
     .sky{color: blue;}
     .venus .sky{color: red;}
     .mars > .sky {color: purple;}
+    #jupiter .sky{position: absolute}
     
 It ignores @ rules for now (until a reason for going through the stress of including them is found)
     
