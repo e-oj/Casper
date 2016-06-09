@@ -1,6 +1,6 @@
 # Casper (in progress...)
 
-A program that checks css files for duplicate declarations of styles on the same element, Id or classname. 
+A program that checks css files for duplicate declarations of styles on the same element, Id or class. 
 Can be used when adding external css libraries to a web project.
   
 Examples of duplicates:
