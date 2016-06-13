@@ -21,7 +21,7 @@ import java.util.concurrent.Future;
  * are linked to the same element, classname or id.
  *
  * @author Emmanuel Olaojo
- * @ contributor Obinna Elobi
+ * @author Obinna Elobi
  * @since 6/1/16
  */
 public class Parser implements Runnable {
