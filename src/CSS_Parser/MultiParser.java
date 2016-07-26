@@ -16,6 +16,7 @@ public class MultiParser extends Thread{
     private Parser parser;
     private Map<String, List<CSS>> globMap;
     private List<Future> futures = new LinkedList<>();
+    private final Object LOCK = new Object();
     public final int MAX_POOL_SIZE;
 
     public MultiParser( List<String> files, Map<String, List<CSS>> globMap) {
@@ -36,8 +37,6 @@ public class MultiParser extends Thread{
                 System.out.println(e.getMessage());
             }
         });
-
-        System.out.println("Done sync");
     }
 
     //multithreaded
@@ -46,7 +45,7 @@ public class MultiParser extends Thread{
 
         files.forEach(file ->  {
             try {
-                this.futures.add(exec.submit(new Parser(file, globMap)));
+                this.futures.add(exec.submit(new Parser(file, globMap, LOCK)));
             } catch (Exception e) {
                 e.printStackTrace();
             }
@@ -69,7 +68,7 @@ public class MultiParser extends Thread{
     	final Map<String, List<CSS>> globMap = new HashMap<>();
     	final Map<String, List<CSS>> globMap2 = new HashMap<>();
         List<String> files = new ArrayList<>();
-        int numFiles = 1000;
+        int numFiles = 4000;
         String testFile = "bootstrap.css";
 
         for(int i=0; i<numFiles; i++){
@@ -92,21 +91,24 @@ public class MultiParser extends Thread{
 
         //make the multiParser wait for the other threads
         parser.endAsync();
-
-        System.out.println("done Async");
         end = System.currentTimeMillis();
+        System.out.println("done Async");
+        Utilities.logMap(globMap, asyncLog);
+        globMap.clear();
         timeTaken = end - start;
 
         //Sync Call
+        System.out.println("start sync");
         start2 = System.currentTimeMillis();
         parser2.parseSync();
         end2 = System.currentTimeMillis();
+        System.out.println("Done sync");
+        Utilities.logMap(globMap2, syncLog);
+//        globMap2.clear();
 
         timeTaken2 = end2 - start2;
 
         //log the maps to a file
-        Utilities.logMap(globMap, asyncLog);
-        Utilities.logMap(globMap2, syncLog);
 
         testLog.println("Using: " + globMap.getClass().getSimpleName());
         testLog.println("\nTesting on " + numFiles + " " + testFile + " files");

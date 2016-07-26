@@ -12,6 +12,7 @@ import java.util.*;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
+import java.util.concurrent.locks.Lock;
 
 /**
  * CSS parser for Casper. Parses the given CSS file and stores
@@ -32,6 +33,8 @@ public class Parser implements Runnable {
     private BufferedReader br;
     private boolean inComment = false;
     private InvalidSyntaxException IVSE;
+    private boolean isThread = false;
+    private final Object LOCK;
 
     /**
      * Constructor takes a file name and the Map that stores the
@@ -40,21 +43,21 @@ public class Parser implements Runnable {
      * confirming the extension, we attempt to open the file and initialize
      * the object's properties.
      *
-     * @param fileName The CSS file to be parsed
+     * @param lock the lock to use
      * @param globMap The Map that stores the parsed objects
      *
      * @throws InvalidExtensionException if the file has an Invalid extension.
      */
-    public Parser(String fileName, Map<String, List<CSS>> globMap) throws
-            FileNotFoundException
-            , InvalidExtensionException {
+    public Parser(String fileName, Map<String, List<CSS>> globMap, Object lock) throws InvalidExtensionException {
 
         this.fileName = fileName;
         this.globMap = globMap;
+        this.LOCK = lock;
         this.IVSE = new InvalidSyntaxException(this.fileName);
     }
 
     public Parser(Map<String, List<CSS>> globMap) {
+        this.LOCK = null;
         this.globMap = globMap;
         this.IVSE = new InvalidSyntaxException(this.fileName);
     }
@@ -150,7 +153,10 @@ public class Parser implements Runnable {
 
             block = this.getBlock(cssString, closeIndex);
             
-            if(block.length() > 0)parseCssBlock(block);
+            if(block.length() > 0){
+                if(isThread) parseCssBlockAsync(block);
+                else parseCssBlock(block);
+            }
         }
     }
 
@@ -167,14 +173,14 @@ public class Parser implements Runnable {
      *
      * @param cssBlock a css String
      *
-     * @throws InvalidSyntaxException if illegal certain Illegal characters
+     * @throws InvalidSyntaxException if certain Illegal characters
      * are encountered or from the methods called (createCSS and getBaseSelector);
      */
     private void parseCssBlock(String cssBlock) throws InvalidSyntaxException {
         String[] styleParts = cssBlock.split("\\{|}");
         String identifiers = styleParts[0];
         String style = styleParts[1];
-        CSS css = createCSS(style);
+        CSS css = createCSS(style, identifiers);
         String[] iSplit = identifiers.split(",");
         List<CSS> styleList;
 
@@ -182,19 +188,90 @@ public class Parser implements Runnable {
 
         for(String s: iSplit){
             String key = this.getBaseSelector(s);
-            CSS val = new CSS(css, s);
 
-            synchronized(globMap){
-                if(globMap.containsKey(key)){
-                    globMap.get(key).add(val);
+            if(globMap.containsKey(key)){
+                globMap.get(key).add(css);
+            }
+            else{
+                styleList = new ArrayList<>();
+                styleList.add(css);
+                globMap.put(key, styleList);
+            }
+        }
+    }
+
+    /**
+     * Asynchronously adds a css block to a list in the map.
+     * Updating the contents of a list that's already in the map is not externally
+     * synchronized because the list has been made thread safe by Collections.synchronizedList.
+     * We do have to synchronize externally when adding a new list to the map to prevent
+     * a race condition causing a newly created list to be overwritten.
+     *
+     * This approach has an advantage over synchronizing the whole map which is: any thread
+     * can access the table at any time and will only wait if another thread has the list
+     * it's trying to access as opposed to all threads waiting for one thread to finish its
+     * operation. The only time we block all the threads is when a thread is creating a new list
+     * in the map.
+     *
+     * @param cssBlock a css String
+     *
+     * @throws InvalidSyntaxException certain Illegal characters
+     * are encountered or from the methods called (createCSS and getBaseSelector);
+     */
+    private void parseCssBlockAsync(String cssBlock) throws InvalidSyntaxException {
+        String[] styleParts = cssBlock.split("\\{|}");
+        String identifiers = styleParts[0];
+        String style = styleParts[1];
+        CSS css = createCSS(style, identifiers);
+        String[] iSplit = identifiers.split(",");
+        List<CSS> styleList;
+
+        if(identifiers.contains(";")) throw this.IVSE;
+
+        for(String s: iSplit){
+            String key = this.getBaseSelector(s);
+
+            if(globMap.containsKey(key)) {
+                boolean success = addToMap(key, css);
+
+                //fail safe
+                while (!success){
+                    success = addToMap(key, css);
                 }
-                else{
-                    styleList = new ArrayList<>();
-                    styleList.add(val);
-                    globMap.put(key, styleList);
+            }
+            else if(LOCK != null){
+                synchronized (LOCK) {
+                    if(!globMap.containsKey(key)) {
+                        styleList = Collections.synchronizedList(new ArrayList<>());
+                        globMap.put(key, styleList);
+                    }
+
+                    addToMap(key, css);
                 }
             }
         }
+    }
+
+    /**
+     * Adds a CSS value to an existing key in the Map.
+     *
+     * We are catching a null pointer because another thread might have modified
+     * the map (maybe caused a rehash resulting in a temporary null value on an existing key)
+     *
+     * @param key the necessary key
+     * @param val a value to be placed in the list associated with key.
+     *
+     * @return true if no NullPointerException occurs, false otherwise
+     */
+    private boolean addToMap(String key, CSS val){
+        try{
+            globMap.get(key).add(val);
+        } catch (NullPointerException n){
+            System.out.println("Null pointer occured while adding css to list in map");
+            return false;
+        }
+
+        return true;
     }
 
     /**
@@ -217,22 +294,15 @@ public class Parser implements Runnable {
         identifier = identifier.trim();
         int start = identifier.length() - 1;
         int end = identifier.length();
-        final Set<Character> SELECTORS = new HashSet<>();
+        final String SELECTORS = ".# >+~";
         char first = identifier.charAt(0);
-
-        SELECTORS.add('.');
-        SELECTORS.add('#');
-        SELECTORS.add(' ');
-        SELECTORS.add('>');
-        SELECTORS.add('+');
-        SELECTORS.add('~');
 
         if(first == '>' || first == '+' || first == '~'){
             System.out.println(identifier);
             throw this.IVSE;
         }
         
-        while(!SELECTORS.contains(identifier.charAt(start)) && start > 0){
+        while(!SELECTORS.contains(identifier.charAt(start) + "") && start > 0){
             start--;
         }
 
@@ -259,8 +329,8 @@ public class Parser implements Runnable {
      * @return a CSS object;
      * @throws InvalidSyntaxException if I detect nonsense
      */
-    private CSS createCSS(String styleString) throws InvalidSyntaxException {
-        CSS css = new CSS(this.fileName);
+    private CSS createCSS(String styleString, String identifiers) throws InvalidSyntaxException {
+        CSS css = new CSS(this.fileName, identifiers);
         String[] styles = styleString.split(";");
 
         for(String style: styles){
@@ -393,16 +463,13 @@ public class Parser implements Runnable {
 	/**
 	 *  Called When the the Parser.java threads are made and "started"
 	 **/
-
     public void run(){
-        /*
-        * Parse the file
-        */
         try {
+            this.isThread = true;
             this.setFile();
             parse();
         } catch (Exception e) {
-            System.out.println(e.getMessage());
+            e.printStackTrace();
         }
     }
     
@@ -419,7 +486,6 @@ public class Parser implements Runnable {
             testParser.parse();
             end = System.currentTimeMillis();
             timeTaken = end - start;
-           // System.out.println(timeTaken);
 
             Utilities.logMap(globMap);
 

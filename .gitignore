@@ -1,0 +1,10 @@
+# Created by .ignore support plugin (hsz.mobi)
+.DS_Store
+.idea/
+Casper.iml
+async.txt
+out/
+src/.DS_Store
+src/CSS_Parser/.DS_Store
+sync.txt
+test.txt
